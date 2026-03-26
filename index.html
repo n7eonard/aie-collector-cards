@@ -225,10 +225,10 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 
 /* mission card */
 .mcard{
-  flex-shrink:0;width:228px;background:var(--g);border:1px solid var(--g2);
-  border-radius:12px;padding:15px;scroll-snap-align:start;cursor:pointer;
+  flex-shrink:0;width:200px;background:var(--g);border:1px solid var(--g2);
+  border-radius:10px;padding:12px;scroll-snap-align:start;cursor:pointer;
   transition:all .16s;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;gap:8px;
+  display:flex;flex-direction:column;gap:6px;
   opacity:0;transform:translateY(14px);animation:cin .38s ease forwards;
 }
 .mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -244,10 +244,12 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 .cday{font-family:'Syne Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;padding:2px 8px;border-radius:100px;background:var(--g2);
   border:1px solid var(--g2);color:var(--muted2)}
-.ctitle{font-size:13px;font-weight:700;line-height:1.3;color:#fff;flex:1}
-.cspeaker{font-size:11px;color:var(--neon2)}
-.cwhy{font-size:10px;line-height:1.5;color:rgba(232,238,248,.48);font-style:italic;
-  border-top:1px solid var(--g);padding-top:7px}
+.ctitle{font-size:12px;font-weight:700;line-height:1.3;color:#fff;flex:1;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cspeaker{font-size:10px;color:var(--neon2)}
+.cwhy{font-size:9px;line-height:1.4;color:rgba(232,238,248,.48);font-style:italic;
+  border-top:1px solid var(--g);padding-top:6px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cact{display:flex;gap:5px}
 .csave{font-family:'Syne Mono',monospace;font-size:9px;padding:5px 11px;border-radius:6px;
   border:1px solid var(--g2);background:transparent;color:var(--muted2);cursor:pointer;transition:all .13s;white-space:nowrap}
@@ -333,7 +335,42 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   text-transform:uppercase;background:rgba(79,255,176,.07);border:1px solid rgba(79,255,176,.28);
   color:var(--neon);padding:4px 12px;border-radius:100px;cursor:pointer;white-space:nowrap;
 }
-@media(max-width:680px){#app{grid-template-columns:1fr}.side{display:none}}
+/* ── BURGER MENU ── */
+.burger{display:none;position:absolute;top:12px;left:12px;z-index:90;
+  background:var(--g);border:1px solid var(--g2);border-radius:7px;
+  padding:7px 9px;cursor:pointer;color:var(--muted);font-size:18px;line-height:1}
+.burger:hover{color:var(--txt);border-color:rgba(79,255,176,.25)}
+.side-close{display:none;position:absolute;top:12px;right:12px;z-index:91;
+  background:none;border:1px solid var(--g2);border-radius:6px;
+  color:var(--muted2);font-size:14px;cursor:pointer;padding:4px 9px;line-height:1.4}
+.side-close:hover{color:var(--txt)}
+
+@media(max-width:680px){
+  #app{grid-template-columns:1fr}
+  .side{
+    display:flex;position:fixed;inset:0;z-index:85;
+    background:var(--bg);transform:translateX(-100%);
+    transition:transform .25s ease;overflow-y:auto;
+    border-right:1px solid var(--g2);width:280px;
+  }
+  .side.open{transform:translateX(0)}
+  .side-close{display:block}
+  .burger{display:block}
+  .rhead{padding-left:52px}
+  .speech-area{padding:14px 16px 10px}
+  .speech-text{font-size:14px}
+  .cards-scroll{padding:0 14px 14px;gap:9px}
+  .mcard{width:170px;padding:10px}
+  .ctitle{font-size:11px}
+  .cwhy{font-size:8px;-webkit-line-clamp:2}
+  .bbar2{padding:9px 12px;gap:6px;flex-wrap:wrap}
+  .abtn{font-size:9px;padding:6px 10px}
+  .saved-pill{font-size:8px;padding:4px 9px}
+  .modal{padding:16px;margin:8px}
+  .overlay{padding:8px}
+  .screen .card{padding:18px}
+  .screen .logo{font-size:24px}
+}
 </style>
 </head>
 <body>
@@ -429,8 +466,10 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 
 <!-- ═══ APP ═══ -->
 <div id="app">
+  <button class="burger" onclick="document.querySelector('.side').classList.add('open')">☰</button>
   <!-- SIDEBAR -->
   <div class="side">
+    <button class="side-close" onclick="document.querySelector('.side').classList.remove('open')">✕</button>
     <div class="badge-pill"><span class="pulse"></span>Apr 8–10 · London</div>
     <div class="av-wrap">
       <div class="av-ring"></div><div class="av-ring2"></div>
