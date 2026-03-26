@@ -16,6 +16,7 @@ Env (.env or shell):
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import TypedDict
 
