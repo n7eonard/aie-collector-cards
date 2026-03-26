@@ -581,6 +581,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // Routing
+  if (USE_PROXY && profile.name) { launchBoot(); return; }
+  if (USE_PROXY) { show('s2'); return; }
   if (k && profile.name) { launchBoot(); return; }
   if (k && !profile.name) { show('s2'); return; }
 });
@@ -591,6 +593,10 @@ function show(id){
 function goBack(){ show('s1'); }
 
 function submitKey(){
+  if(USE_PROXY){
+    show('s2');
+    return;
+  }
   const err=document.getElementById('s1err');
   const raw=document.getElementById('keyInput').value.trim();
   const key=(raw&&raw!=='••••••••••••')?raw:getKey();
