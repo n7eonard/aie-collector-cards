@@ -8,9 +8,17 @@ A standalone single-page app that replaces the current AIE Twin briefing app. Us
 
 **Monofichier HTML** — all CSS, JS, and HTML in a single `index.html`. No build step, no framework, no dependencies. Deployed as a static file on Cloudflare Pages.
 
-**Data source:** Sessions and speakers loaded from local `data/sessions.json` and `data/speakers.json` at startup via `fetch()`. The backend proxy (`/api/aie/*`) remains available as fallback.
+**Data source:** Sessions and speakers loaded from local `data/sessions.json` and `data/speakers.json` at startup via `fetch()`. Both files are wrapper objects: sessions live at `response.sessions` (array) and speakers at `response.speakers` (array). The backend proxy (`/api/aie/*`) remains available as fallback.
 
-**Persistence:** `localStorage` for saved deck. Key: `aie_deck` storing an array of session indices. Future Supabase auth + sync layer can wrap this without UI changes.
+**Persistence:** `localStorage` for saved deck. Key: `aie_deck` storing an array of stable session IDs. Each session ID is generated at parse time as a hash of `title + day + time` (e.g., `btoa(title+day+time).slice(0,16)`). This ensures deck integrity even if the source JSON is reordered or updated. Future Supabase auth + sync layer can wrap this without UI changes.
+
+**Data normalization at parse time:**
+- Merge `GPUs & LLM Infrastructure` into `GPUs & LLM Infra` (canonical name)
+- Map type `track_keynote` to `keynote` for filtering purposes
+- Map type `expo_session` to `expo` for filtering purposes
+- Sessions with empty titles: use first speaker name as fallback, or "TBA" if no speakers
+- `Google DeepMind/Gemini` track (14 sessions): added as an 11th track filter pill
+- `Leadership Lunch` (1 session): no dedicated filter, visible when "all" is shown
 
 ## Page Structure
 
@@ -82,6 +90,7 @@ Each session renders as a two-part component. The upper part is the collector ca
 | Claws & Personal Agents | #8b5cf6 (violet) | #6366f1 (indigo) |
 | AI Architects | #e2e8f0 (silver) | #94a3b8 (slate) |
 | GPUs & LLM Infra | #ef4444 (red) | #f97316 (deep orange) |
+| Google DeepMind/Gemini | #4285f4 (google blue) | #34a853 (google green) |
 | Generative Media | #84cc16 (lime) | #14b8a6 (teal) |
 | Keynote | #fbbf24 (gold) | #fef3c7 (warm white) |
 | Workshop | #1e40af (navy) | #3b82f6 (deep blue) |
@@ -121,11 +130,15 @@ Directly attached below the collector card, same width, visually connected.
 
 ### Speaker Data Enrichment
 
-The `sessions.json` contains speaker names as strings. Cross-reference with `speakers.json` to get:
-- Company/organization
-- Short bio (not displayed on card, available for future modal)
+The `sessions.json` contains speaker names as strings. Cross-reference with `speakers.json` (matched by `name` field) to get:
+- `company` — displayed on info panel
+- `role` — displayed alongside company (e.g., "Founding Engineer, Vercel")
+- `photoUrl` — not used in v1, available for future enhancement
+- `linkedin` — not used in v1
 
-Match by speaker name string between the two datasets.
+**Multi-speaker sessions (24 sessions with 2-3 speakers):** Show all names comma-separated on one line. Company shown for the first speaker only to avoid clutter.
+
+**Sessions with no speakers (40 sessions, mostly expo):** Hide the speaker row entirely. The description line moves up to fill the space.
 
 ## Component 3: Filter Bar
 
@@ -142,10 +155,13 @@ Consolidated track list for filter pills:
 4. Claws & Personal Agents
 5. Voice & Vision
 6. Coding Agents
-7. GPUs & LLM Infra
+7. GPUs & LLM Infra (normalized from both "GPUs & LLM Infra" and "GPUs & LLM Infrastructure")
 8. MCP
 9. AI Architects
 10. Generative Media
+11. Google DeepMind/Gemini (14 sessions, Rutherford room)
+
+Excluded from track filters: Expo sub-room tracks (`Expo Sessions (Abbey|Shelley|Wesley|Wordsworth)`) — these sessions are reachable via the "Expo" type filter instead. `Leadership Lunch` (1 session) — no dedicated pill, always visible in unfiltered view.
 
 ### Type Filters
 
@@ -186,6 +202,22 @@ Fixed top bar.
 4. **Filter:** On filter change, toggle `display:none` on cards (no re-render, pure CSS class toggle for performance)
 5. **Save/unsave:** Toggle session index in `localStorage` array, update card glow + button state + deck counter
 6. **My Deck toggle:** Add/remove a CSS class on the grid container that hides non-saved cards
+
+## UI States
+
+**Loading:** Skeleton card grid (8 placeholder cards with pulsing gradient animation) while `fetch()` is in-flight.
+
+**Fetch error:** Centered message "Could not load sessions. Please refresh." with a retry button.
+
+**Empty filter results:** Centered message "No sessions match your filters" with a "Clear filters" link.
+
+**Empty deck:** When "My Deck" is active with no saved sessions, show "Save sessions to build your deck" with an arrow pointing to the grid.
+
+**Card date formatting:** "April 8" from data displayed as "APR 8" in uppercase monospace on the card.
+
+**Barcode decoration:** CSS-generated pseudo-element with repeating thin vertical bars (`repeating-linear-gradient`) — purely decorative, varies width randomly per card using a CSS custom property seeded from the session index.
+
+**Iridescent border animation:** Slow continuous rotation (`@keyframes rotate { to { --angle: 360deg } }`) at 4s duration on all cards. Uses `@property --angle` for animatable CSS custom property. Performant as it only affects the border pseudo-element.
 
 ## Performance
 
