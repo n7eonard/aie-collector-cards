@@ -110,16 +110,31 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   display:flex;flex-direction:column;contain:layout style;
 }
 .card-wrap.hidden{display:none}
-.card-wrap.saved .collector-border{opacity:1!important}
-.card-wrap.saved .collector{box-shadow:0 0 24px -4px rgba(var(--c1-rgb),0.35)}
+.card-wrap.saved .collector-shell{box-shadow:0 0 24px -4px rgba(var(--c1-rgb),0.35)}
+
+/* ── COLLECTOR SHELL (border container) ── */
+.collector-shell{
+  position:relative;border-radius:14px;
+  will-change:transform;transition:transform .15s ease;
+  cursor:pointer;
+}
+
+/* ── IRIDESCENT BORDER (on shell, outside overflow:hidden) ── */
+@keyframes rotate-border{0%{--angle:0deg}100%{--angle:360deg}}
+.collector-shell::before{
+  content:'';position:absolute;inset:-2px;z-index:0;border-radius:16px;
+  background:conic-gradient(from var(--angle),#f0abfc,#818cf8,#38bdf8,#34d399,#fbbf24,#fb7185,#f0abfc);
+  animation:rotate-border 4s linear infinite;
+  opacity:.4;transition:opacity .3s;
+}
+.collector-shell:hover::before{opacity:1}
+.card-wrap.saved .collector-shell::before{opacity:1}
 
 /* ── COLLECTOR CARD ── */
 .collector{
-  aspect-ratio:3/4;position:relative;border-radius:12px;overflow:hidden;
-  cursor:pointer;will-change:transform;
+  aspect-ratio:3/4;position:relative;border-radius:12px;overflow:hidden;z-index:1;
   display:flex;flex-direction:column;justify-content:space-between;
   padding:16px;color:#fff;
-  transition:transform .15s ease;
 }
 .collector::before{
   content:'';position:absolute;inset:0;z-index:0;
@@ -133,17 +148,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.12) 0%,transparent 60%);
   opacity:0;transition:opacity .25s;pointer-events:none;
 }
-.collector:hover::after{opacity:1}
+.collector-shell:hover .collector::after{opacity:1}
 
-/* ── IRIDESCENT BORDER ── */
-@keyframes rotate-border{0%{--angle:0deg}100%{--angle:360deg}}
-.collector-border{
-  position:absolute;inset:-2px;z-index:-1;border-radius:14px;
-  background:conic-gradient(from var(--angle),#f0abfc,#818cf8,#38bdf8,#34d399,#fbbf24,#fb7185,#f0abfc);
-  animation:rotate-border 4s linear infinite;
-  opacity:0;transition:opacity .3s;
-}
-.collector:hover .collector-border{opacity:1}
+/* (iridescent border moved to .collector-shell::before above) */
 
 /* ── CARD INNER ── */
 .c-head,.c-body,.c-foot{position:relative;z-index:2}
@@ -380,8 +387,8 @@ function renderGrid() {
     const typeClass = TYPE_COLORS[s.type] || '';
 
     html += `<div class="card-wrap${saved ? ' saved' : ''}" data-id="${s.id}" data-track="${esc(s.track)}" data-type="${esc(s.type)}" style="--c1:${c.c1};--c2:${c.c2};--c1-rgb:${c.rgb};--bw:${bw}px">
-  <div class="collector" onmouseenter="tiltEnter(event)" onmouseleave="tiltLeave(event)" onmousemove="tiltMove(event)">
-    <div class="collector-border"></div>
+  <div class="collector-shell" onmouseenter="tiltEnter(event)" onmouseleave="tiltLeave(event)" onmousemove="tiltMove(event)">
+  <div class="collector">
     <div class="c-head">
       <div class="c-head-left">
         <div class="c-day">${esc(s.day)}</div>
@@ -402,6 +409,7 @@ function renderGrid() {
       </div>
       <div class="c-copy">\u00A9 2026</div>
     </div>
+  </div>
   </div>
   <div class="info-panel">
     ${spNames ? `<div class="info-speaker">${esc(spNames)}</div>` : ''}
@@ -500,7 +508,8 @@ function toggleDeck() {
    TILT STUBS (Task 5)
    ═══════════════════════════════════════════ */
 let _tiltRAF = 0;
-function tiltMove(e, el) {
+function tiltMove(e) {
+  const el = e.currentTarget;
   if (window.matchMedia('(hover: none)').matches) return;
   cancelAnimationFrame(_tiltRAF);
   _tiltRAF = requestAnimationFrame(() => {
@@ -510,16 +519,18 @@ function tiltMove(e, el) {
     const rotY = (x - 0.5) * 20;
     const rotX = (0.5 - y) * 20;
     el.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-    el.style.setProperty('--mx', (x * 100) + '%');
-    el.style.setProperty('--my', (y * 100) + '%');
+    /* Set reflection vars on the inner .collector for ::after */
+    const inner = el.querySelector('.collector');
+    if (inner) { inner.style.setProperty('--mx', (x*100)+'%'); inner.style.setProperty('--my', (y*100)+'%'); }
   });
 }
 
-function tiltEnter(el) {
-  el.style.transition = 'transform .1s ease-out';
+function tiltEnter(e) {
+  e.currentTarget.style.transition = 'transform .1s ease-out';
 }
 
-function tiltLeave(el) {
+function tiltLeave(e) {
+  const el = e.currentTarget;
   el.style.transition = 'transform .4s ease-out';
   el.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale(1)';
 }
