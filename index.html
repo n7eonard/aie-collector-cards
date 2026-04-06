@@ -135,6 +135,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   aspect-ratio:3/4;position:relative;border-radius:12px;overflow:hidden;z-index:1;
   display:flex;flex-direction:column;justify-content:space-between;
   padding:16px;color:#fff;
+  background-size:cover;background-position:center;background-color:var(--deep);
 }
 .collector::before{
   content:'';position:absolute;inset:0;z-index:0;
@@ -240,6 +241,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 const S = {
   sessions: [],
   speakers: {},
+  cardImages: {},
   deck: JSON.parse(localStorage.getItem('aie_deck') || '[]'),
   filterTrack: null,
   filterType: null,
@@ -378,7 +380,8 @@ function showError(msg) {
 function renderGrid() {
   const grid = document.getElementById('grid');
   let html = '';
-  for (const s of S.sessions) {
+  for (let i = 0; i < S.sessions.length; i++) {
+    const s = S.sessions[i];
     const c = COLORS[s.track] || FALLBACK_COLOR;
     const saved = S.deck.includes(s.id);
     const bw = (1 + ((s.id.charCodeAt(0) * 7) % 3) * 0.4).toFixed(1);
@@ -386,9 +389,12 @@ function renderGrid() {
     const spCompany = s.speakers.length ? (s.speakers[0].company || '') : '';
     const typeClass = TYPE_COLORS[s.type] || '';
 
+    const cardImg = S.cardImages[String(i)];
+    const bgStyle = cardImg ? `background-image:url(data/card-images/${cardImg});` : '';
+
     html += `<div class="card-wrap${saved ? ' saved' : ''}" data-id="${s.id}" data-track="${esc(s.track)}" data-type="${esc(s.type)}" style="--c1:${c.c1};--c2:${c.c2};--c1-rgb:${c.rgb};--bw:${bw}px">
   <div class="collector-shell" onmouseenter="tiltEnter(event)" onmouseleave="tiltLeave(event)" onmousemove="tiltMove(event)">
-  <div class="collector">
+  <div class="collector" style="${bgStyle}">
     <div class="c-head">
       <div class="c-head-left">
         <div class="c-day">${esc(s.day)}</div>
@@ -553,6 +559,13 @@ async function init() {
     const spkData = await spkRes.json();
 
     S.sessions = normalize(sessData.sessions, spkData.speakers);
+
+    /* Load card image index (optional — fallback to CSS gradients) */
+    try {
+      const imgRes = await fetch('data/card-images/index.json');
+      if (imgRes.ok) S.cardImages = await imgRes.json();
+    } catch(_) {}
+
     renderGrid();
     applyFilters();
   } catch (err) {
