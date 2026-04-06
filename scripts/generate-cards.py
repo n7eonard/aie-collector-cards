@@ -20,14 +20,26 @@ from pathlib import Path
 
 import httpx
 
+# ── Load .env file (check multiple locations) ──
+def load_dotenv():
+    for p in [Path(".env"), Path(__file__).resolve().parent.parent / ".env", Path("/Users/usuario/Code/aie-twin/.env")]:
+        if p.exists():
+            for line in p.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip())
+            return
+load_dotenv()
+
 # ── Config ──
-API_URL = "https://api.bfl.ai/v1/flux-2-pro"
+API_URL = "https://api.bfl.ai/v1/flux-2-klein-9b-preview"
 IMG_DIR = Path("data/card-images")
 SESSIONS_FILE = Path("data/sessions.json")
 WIDTH, HEIGHT = 480, 640
 MAX_CONCURRENT = 20
-POLL_INTERVAL = 1.5  # seconds between polls
-MAX_POLL_TIME = 120  # seconds before giving up on one image
+POLL_INTERVAL = 0.8  # seconds between polls (klein is sub-second)
+MAX_POLL_TIME = 60  # seconds before giving up on one image
 
 # ── Track color descriptions for prompts ──
 TRACK_COLORS = {
