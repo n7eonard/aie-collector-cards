@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AIE Europe '26 — Session Deck Builder</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -81,7 +82,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.grid{grid-template-columns:1fr;padding:110px 14px 40px}.header{padding:12px 14px}.filters-wrap{padding:8px 14px}}
 @media(max-width:600px){
-  .collector{aspect-ratio:4/5}
+  .card-flipper{aspect-ratio:4/5}
   .c-title{font-size:14px}
   .header{padding:12px 16px}
   .header-title{font-size:18px}
@@ -107,7 +108,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 
 /* ── CARD WRAPPER ── */
 .card-wrap{
-  display:flex;flex-direction:column;contain:layout style;
+  contain:layout style;
 }
 .card-wrap.hidden{display:none}
 .card-wrap.saved .collector-shell{box-shadow:0 0 24px -4px rgba(var(--c1-rgb),0.35)}
@@ -115,7 +116,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 /* ── COLLECTOR SHELL (border container) ── */
 .collector-shell{
   position:relative;border-radius:14px;
-  will-change:transform;transition:transform .15s ease;
+  perspective:1000px;
   cursor:pointer;
 }
 
@@ -132,7 +133,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 
 /* ── COLLECTOR CARD ── */
 .collector{
-  aspect-ratio:3/4;position:relative;border-radius:12px;overflow:hidden;z-index:1;
+  backface-visibility:hidden;position:absolute;inset:0;border-radius:12px;overflow:hidden;z-index:1;
   display:flex;flex-direction:column;justify-content:space-between;
   padding:16px;color:#fff;
   background-size:cover;background-position:center;background-color:var(--deep);
@@ -150,6 +151,52 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   opacity:0;transition:opacity .25s;pointer-events:none;
 }
 .collector-shell:hover .collector::after{opacity:1}
+
+/* ── CARD FLIP ── */
+.card-flipper{
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,.0,.15,1.06);
+  aspect-ratio:3/4;
+}
+.card-flipper.flipped{transform:rotateY(180deg)}
+@keyframes flip-glow{
+  0%{filter:brightness(1)}
+  35%{filter:brightness(1.4) drop-shadow(0 0 24px rgba(var(--c1-rgb,79,255,176),.5))}
+  100%{filter:brightness(1)}
+}
+.card-flipper.flip-anim{animation:flip-glow .7s ease}
+.card-back{
+  backface-visibility:hidden;
+  transform:rotateY(180deg);
+  position:absolute;inset:0;
+  border-radius:12px;overflow:hidden;
+  background:var(--surface);
+  display:flex;flex-direction:column;
+  padding:16px;color:var(--txt);
+  overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:var(--g2) transparent;
+}
+.card-back::-webkit-scrollbar{width:4px}
+.card-back::-webkit-scrollbar-thumb{background:var(--g2);border-radius:2px}
+
+.cb-hint{font-family:'Syne Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:.08em;margin-bottom:12px;cursor:pointer}
+.cb-title{font-size:15px;font-weight:800;line-height:1.25;margin-bottom:4px}
+.cb-track{font-family:'Syne Mono',monospace;font-size:9px;color:var(--c1,var(--muted));letter-spacing:.08em;margin-bottom:12px}
+.cb-divider{height:1px;background:var(--g2);margin:8px 0}
+.cb-pitch{font-style:italic;font-size:13px;line-height:1.5;color:#4fffb0;margin:4px 0}
+.cb-speaker{font-size:12px;font-weight:700;margin-top:4px}
+.cb-role{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2)}
+.cb-meta{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2);margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.cb-desc{font-size:11px;line-height:1.55;color:var(--muted);margin-top:8px;flex:1}
+.cb-save{
+  font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:.08em;
+  background:transparent;color:var(--muted);border:1px solid var(--g2);
+  border-radius:10px;padding:10px 0;cursor:pointer;transition:all .25s;
+  width:100%;text-align:center;margin-top:auto;flex-shrink:0;
+}
+.cb-save:hover{color:#fff;font-weight:700;border-color:var(--c1,rgba(255,255,255,.3));background:var(--c1,#4fffb0)}
+.card-wrap.saved .cb-save{color:var(--c1);border-color:var(--c1);background:color-mix(in srgb,var(--c1) 15%,transparent)}
 
 /* (iridescent border moved to .collector-shell::before above) */
 
@@ -186,35 +233,6 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 .type-lightning{color:#c084fc}
 .type-expo{color:rgba(255,255,255,.45)}
 
-/* ── INFO PANEL ── */
-.info-panel{
-  background:var(--surface);border:1px solid var(--g);
-  border-top:none;border-radius:0 0 12px 12px;
-  padding:14px 16px;display:flex;flex-direction:column;gap:8px;
-  margin-top:-2px;flex:1;
-}
-.save-btn{margin-top:auto}
-.info-speaker{font-size:13px;font-weight:700}
-.info-company{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.04em}
-.info-desc{
-  font-size:12px;line-height:1.5;color:var(--muted);
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
-}
-.info-meta{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:.04em}
-.save-btn{
-  font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:.08em;
-  background:transparent;color:var(--muted);border:1px solid var(--g2);
-  border-radius:10px;padding:10px 0;cursor:pointer;transition:all .25s;
-  width:100%;text-align:center;
-}
-.save-btn:hover{
-  color:#fff;font-weight:700;border-color:var(--c1,rgba(255,255,255,.3));
-  background:var(--c1,#4fffb0);
-}
-.card-wrap.saved .save-btn{
-  color:var(--c1);border-color:var(--c1);
-  background:color-mix(in srgb,var(--c1) 15%,transparent);
-}
 
 /* ── ERROR STATE ── */
 .error-state{
@@ -294,6 +312,61 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 }
 .deck-empty .big{font-size:40px;line-height:1;margin-bottom:10px}
 .deck-empty p{font-family:'Syne Mono',monospace;font-size:12px;letter-spacing:.06em}
+
+/* ── AUTH ── */
+.header-right{display:flex;align-items:center;gap:10px}
+.auth-btn{
+  font-family:'Syne Mono',monospace;font-size:10px;letter-spacing:.08em;
+  background:transparent;color:var(--muted);border:1px solid var(--g2);
+  border-radius:999px;padding:7px 16px;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.auth-btn:hover{color:#e8eef8;border-color:rgba(255,255,255,.3)}
+.user-pill{
+  font-family:'Syne Mono',monospace;font-size:10px;letter-spacing:.04em;
+  color:var(--muted);display:flex;align-items:center;gap:6px;position:relative;
+}
+.user-pill button{
+  font-family:'Syne Mono',monospace;font-size:9px;
+  background:transparent;color:var(--muted2);border:1px solid var(--g2);
+  border-radius:999px;padding:4px 10px;cursor:pointer;transition:all .2s;
+}
+.user-pill button:hover{color:#ff5555;border-color:#ff5555}
+
+/* Auth modal */
+.auth-overlay{
+  position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.auth-overlay.hidden{display:none}
+.auth-modal{
+  background:var(--surface);border:1px solid var(--g2);border-radius:16px;
+  padding:32px;width:100%;max-width:380px;text-align:center;
+}
+.auth-modal h2{font-size:18px;font-weight:800;margin-bottom:6px}
+.auth-modal p{font-family:'Syne Mono',monospace;font-size:11px;color:var(--muted2);margin-bottom:20px;line-height:1.5}
+.auth-input{
+  width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--g2);
+  background:var(--deep);color:var(--txt);font-family:'Syne Mono',monospace;font-size:13px;
+  outline:none;margin-bottom:12px;transition:border-color .2s;
+}
+.auth-input:focus{border-color:rgba(79,255,176,.4)}
+.auth-submit{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:#4fffb0;color:#06080e;font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:800;cursor:pointer;transition:opacity .2s;
+}
+.auth-submit:hover{opacity:.85}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-msg{
+  font-family:'Syne Mono',monospace;font-size:11px;color:#4fffb0;
+  margin-top:12px;line-height:1.5;
+}
+.auth-close{
+  font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2);
+  background:transparent;border:none;cursor:pointer;margin-top:16px;
+}
+.auth-close:hover{color:var(--txt)}
 </style>
 </head>
 <body>
@@ -303,8 +376,25 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
     <div class="header-title">AIE EUROPE '26</div>
     <div class="header-sub">SESSION DECK BUILDER</div>
   </div>
-  <button class="deck-btn" id="deckBtn" onclick="toggleDeck()">MY DECK (0)</button>
+  <div class="header-right">
+    <div id="authArea">
+      <button class="auth-btn" onclick="showAuthModal()">SIGN IN</button>
+    </div>
+    <button class="deck-btn" id="deckBtn" onclick="toggleDeck()">MY DECK (0)</button>
+  </div>
 </header>
+
+<!-- Auth Modal -->
+<div class="auth-overlay hidden" id="authOverlay" onclick="if(event.target===this)hideAuthModal()">
+  <div class="auth-modal">
+    <h2>Sign in</h2>
+    <p>Enter your email to receive a magic link.<br>No password needed.</p>
+    <input class="auth-input" id="authEmail" type="email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')sendMagicLink()">
+    <button class="auth-submit" id="authSubmit" onclick="sendMagicLink()">SEND MAGIC LINK</button>
+    <div class="auth-msg hidden" id="authMsg"></div>
+    <button class="auth-close" onclick="hideAuthModal()">CANCEL</button>
+  </div>
+</div>
 
 <div class="filters-wrap">
   <div class="filters" id="filters"></div>
@@ -322,11 +412,134 @@ const S = {
   sessions: [],
   speakers: {},
   cardImages: {},
+  pitches: {},
   deck: JSON.parse(localStorage.getItem('aie_deck') || '[]'),
   filterTrack: null,
   filterType: null,
-  deckMode: false
+  deckMode: false,
+  user: null
 };
+
+/* ═══════════════════════════════════════════
+   SUPABASE
+   ═══════════════════════════════════════════ */
+const SUPABASE_URL = 'https://mkpqiczvmfnlmcqdjxhj.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_UJCQBC9E1Jwfdjm7duJbqA_wwnERyZZ';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+/* ── Auth UI ── */
+function showAuthModal() {
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('authMsg').classList.add('hidden');
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authSubmit').disabled = false;
+  setTimeout(() => document.getElementById('authEmail').focus(), 100);
+}
+function hideAuthModal() {
+  document.getElementById('authOverlay').classList.add('hidden');
+}
+
+async function sendMagicLink() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) return;
+  const btn = document.getElementById('authSubmit');
+  const msg = document.getElementById('authMsg');
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: location.origin + location.pathname }
+  });
+
+  if (error) {
+    msg.textContent = error.message;
+    msg.style.color = '#ff5555';
+  } else {
+    msg.textContent = 'Check your email! Click the magic link to sign in.';
+    msg.style.color = '#4fffb0';
+  }
+  msg.classList.remove('hidden');
+  btn.textContent = 'SEND MAGIC LINK';
+  btn.disabled = false;
+}
+
+function renderAuthUI() {
+  const area = document.getElementById('authArea');
+  if (S.user) {
+    const email = S.user.email || '';
+    const short = email.length > 20 ? email.slice(0, 17) + '...' : email;
+    area.innerHTML = `<div class="user-pill"><span>${esc(short)}</span><button onclick="signOut()">SIGN OUT</button></div>`;
+  } else {
+    area.innerHTML = '<button class="auth-btn" onclick="showAuthModal()">SIGN IN</button>';
+  }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  S.user = null;
+  renderAuthUI();
+}
+
+/* ── Deck Sync ── */
+let _syncTimer = 0;
+function scheduleDeckSync() {
+  if (!S.user) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncDeckToSupabase, 300);
+}
+
+async function syncDeckToSupabase() {
+  if (!S.user || !sb) return;
+  await sb.from('decks').upsert({
+    user_id: S.user.id,
+    session_ids: S.deck,
+    updated_at: new Date().toISOString()
+  });
+}
+
+async function fetchRemoteDeck() {
+  if (!S.user || !sb) return;
+  const { data } = await sb.from('decks').select('session_ids').eq('user_id', S.user.id).single();
+  if (data && data.session_ids) {
+    /* Merge remote + local (union, no duplicates) */
+    const merged = [...new Set([...S.deck, ...data.session_ids])];
+    S.deck = merged;
+    localStorage.setItem('aie_deck', JSON.stringify(S.deck));
+    /* Sync merged back if it changed */
+    if (merged.length !== data.session_ids.length) syncDeckToSupabase();
+  } else {
+    /* No remote deck yet — push local to remote */
+    if (S.deck.length) syncDeckToSupabase();
+  }
+}
+
+async function initAuth() {
+  if (!sb) return;
+  /* Listen for auth state changes (magic link return, sign out) */
+  sb.auth.onAuthStateChange(async (event, session) => {
+    S.user = session?.user || null;
+    renderAuthUI();
+    hideAuthModal();
+    if (S.user) {
+      await fetchRemoteDeck();
+      /* Re-render cards with updated deck state */
+      if (S.sessions.length) {
+        renderGrid();
+        applyFilters();
+        updateDeckCount();
+        if (S.deckMode) renderDeck();
+      }
+    }
+  });
+  /* Check existing session */
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    S.user = session.user;
+    renderAuthUI();
+    await fetchRemoteDeck();
+  }
+}
 
 /* ═══════════════════════════════════════════
    CONSTANTS
@@ -472,37 +685,49 @@ function renderGrid() {
     const cardImg = S.cardImages[String(i)];
     const bgStyle = cardImg ? `background-image:url(data/card-images/${cardImg});` : '';
 
+    const pitch = S.pitches[String(i)] || '';
+
     html += `<div class="card-wrap${saved ? ' saved' : ''}" data-id="${s.id}" data-track="${esc(s.track)}" data-type="${esc(s.type)}" style="--c1:${c.c1};--c2:${c.c2};--c1-rgb:${c.rgb};--bw:${bw}px">
-  <div class="collector-shell" onmouseenter="tiltEnter(event)" onmouseleave="tiltLeave(event)" onmousemove="tiltMove(event)">
-  <div class="collector" style="${bgStyle}">
-    <div class="c-head">
-      <div class="c-head-left">
-        <div class="c-day">${esc(s.day)}</div>
-        <div class="c-room">${esc(s.room)}</div>
+  <div class="collector-shell" onclick="flipCard(event)" onmouseenter="tiltEnter(event)" onmouseleave="tiltLeave(event)" onmousemove="tiltMove(event)">
+    <div class="card-flipper">
+      <div class="collector" style="${bgStyle}">
+        <div class="c-head">
+          <div class="c-head-left">
+            <div class="c-day">${esc(s.day)}</div>
+            <div class="c-room">${esc(s.room)}</div>
+          </div>
+          <div class="c-head-right">
+            <div class="c-conf">AIE EUROPE '26</div>
+            <div class="c-barcode"></div>
+          </div>
+        </div>
+        <div class="c-body">
+          <div class="c-title">${esc(s.title)}</div>
+        </div>
+        <div class="c-foot">
+          <div class="c-foot-left">
+            <div class="c-track">${esc(s.track)}</div>
+            <div class="c-type ${typeClass}">${esc(s.type.toUpperCase())}</div>
+          </div>
+          <div class="c-copy">\u00A9 2026</div>
+        </div>
       </div>
-      <div class="c-head-right">
-        <div class="c-conf">AIE EUROPE '26</div>
-        <div class="c-barcode"></div>
+      <div class="card-back">
+        <div class="cb-hint">\u2190 TAP TO FLIP BACK</div>
+        <div class="cb-title">${esc(s.title)}</div>
+        <div class="cb-track" style="color:${c.c1}">${esc(s.track)}${s.track && s.type ? ' \u00B7 ' : ''}${esc(s.type.toUpperCase())}</div>
+        ${pitch ? `<div class="cb-divider"></div><div class="cb-pitch">${esc(pitch)}</div>` : ''}
+        <div class="cb-divider"></div>
+        ${spNames ? `<div class="cb-speaker">${esc(spNames)}</div>` : ''}
+        ${spCompany ? `<div class="cb-role">${esc(spCompany)}</div>` : ''}
+        <div class="cb-meta">
+          <span>\uD83D\uDCC5 ${esc(s.day)} \u00B7 ${esc(s.time)}</span>
+          <span>\uD83D\uDCCD ${esc(s.room)}</span>
+        </div>
+        ${s.description ? `<div class="cb-desc">${esc(s.description)}</div>` : ''}
+        <button class="cb-save" onclick="toggleSave('${s.id}')">${saved ? '\u2713 SAVED' : '+ SAVE TO DECK'}</button>
       </div>
     </div>
-    <div class="c-body">
-      <div class="c-title">${esc(s.title)}</div>
-    </div>
-    <div class="c-foot">
-      <div class="c-foot-left">
-        <div class="c-track">${esc(s.track)}</div>
-        <div class="c-type ${typeClass}">${esc(s.type.toUpperCase())}</div>
-      </div>
-      <div class="c-copy">\u00A9 2026</div>
-    </div>
-  </div>
-  </div>
-  <div class="info-panel">
-    ${spNames ? `<div class="info-speaker">${esc(spNames)}</div>` : ''}
-    ${spCompany ? `<div class="info-company">${esc(spCompany)}</div>` : ''}
-    ${s.description ? `<div class="info-desc">${esc(s.description)}</div>` : ''}
-    <div class="info-meta">${esc(s.time)}${s.room ? ' \u00B7 ' + esc(s.room) : ''}</div>
-    <button class="save-btn" onclick="toggleSave('${s.id}')">${saved ? '\u2713 SAVED' : '+ SAVE TO DECK'}</button>
   </div>
 </div>`;
   }
@@ -567,6 +792,7 @@ function toggleSave(id) {
     S.deck.push(id);
   }
   localStorage.setItem('aie_deck', JSON.stringify(S.deck));
+  scheduleDeckSync();
 
   // Update card DOM
   const wrap = document.querySelector(`.card-wrap[data-id="${id}"]`);
@@ -575,9 +801,14 @@ function toggleSave(id) {
     wrap.classList.toggle('saved', saved);
     const btn = wrap.querySelector('.save-btn');
     if (btn) btn.textContent = saved ? '\u2713 SAVED' : '+ SAVE TO DECK';
+    const cbBtn = wrap.querySelector('.cb-save');
+    if (cbBtn) cbBtn.textContent = saved ? '\u2713 SAVED' : '+ SAVE TO DECK';
   }
   updateDeckCount();
   if (S.deckMode) { applyFilters(); renderDeck(); }
+
+  /* Prompt sign-in when user saves their 3rd card (if not signed in) */
+  if (!S.user && S.deck.length === 3) showAuthModal();
 }
 
 function updateDeckCount() {
@@ -713,24 +944,36 @@ function renderDeck() {
     const spNames = s.speakers.map(sp => sp.name).join(', ') || '';
     const spCompany = s.speakers.length ? (s.speakers[0].company || '') : '';
 
+    const pitch = S.pitches[String(i)] || '';
+
     html += `<div class="card-wrap saved" style="--c1:${c.c1};--c2:${c.c2};--c1-rgb:${c.rgb};--bw:${bw}px">
-      <div class="collector-shell">
-        <div class="collector" style="${bgStyle}">
-          <div class="c-head">
-            <div class="c-head-left"><div class="c-day">${esc(s.day)}</div><div class="c-room">${esc(s.room)}</div></div>
-            <div class="c-head-right"><div class="c-conf">AIE EUROPE '26</div><div class="c-barcode"></div></div>
+      <div class="collector-shell" onclick="flipCard(event)">
+        <div class="card-flipper">
+          <div class="collector" style="${bgStyle}">
+            <div class="c-head">
+              <div class="c-head-left"><div class="c-day">${esc(s.day)}</div><div class="c-room">${esc(s.room)}</div></div>
+              <div class="c-head-right"><div class="c-conf">AIE EUROPE '26</div><div class="c-barcode"></div></div>
+            </div>
+            <div class="c-body"><div class="c-title">${esc(s.title)}</div></div>
+            <div class="c-foot">
+              <div class="c-foot-left"><div class="c-track">${esc(s.track)}</div><div class="c-type ${typeClass}">${esc(s.type.toUpperCase())}</div></div>
+              <div class="c-copy">\u00A9 2026</div>
+            </div>
           </div>
-          <div class="c-body"><div class="c-title">${esc(s.title)}</div></div>
-          <div class="c-foot">
-            <div class="c-foot-left"><div class="c-track">${esc(s.track)}</div><div class="c-type ${typeClass}">${esc(s.type.toUpperCase())}</div></div>
-            <div class="c-copy">\u00A9 2026</div>
+          <div class="card-back">
+            <div class="cb-hint">\u2190 TAP TO FLIP BACK</div>
+            <div class="cb-title">${esc(s.title)}</div>
+            <div class="cb-track" style="color:${c.c1}">${esc(s.track)}${s.track && s.type ? ' \u00B7 ' : ''}${esc(s.type.toUpperCase())}</div>
+            ${pitch ? `<div class="cb-divider"></div><div class="cb-pitch">${esc(pitch)}</div>` : ''}
+            <div class="cb-divider"></div>
+            ${spNames ? `<div class="cb-speaker">${esc(spNames)}</div>` : ''}
+            ${spCompany ? `<div class="cb-role">${esc(spCompany)}</div>` : ''}
+            <div class="cb-meta">
+              <span>\uD83D\uDCC5 ${esc(s.day)} \u00B7 ${esc(s.time)}</span>
+              <span>\uD83D\uDCCD ${esc(s.room)}</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="info-panel">
-        ${spNames ? `<div class="info-speaker">${esc(spNames)}</div>` : ''}
-        ${spCompany ? `<div class="info-company">${esc(spCompany)}</div>` : ''}
-        <div class="info-meta">${esc(s.time)}${s.room ? ' \u00B7 ' + esc(s.room) : ''}</div>
       </div>
     </div>`;
   }
@@ -743,12 +986,15 @@ function removeDeck(id) {
   const idx = S.deck.indexOf(id);
   if (idx >= 0) S.deck.splice(idx, 1);
   localStorage.setItem('aie_deck', JSON.stringify(S.deck));
+  scheduleDeckSync();
   /* Also update browse view card state */
   const wrap = document.querySelector(`.grid .card-wrap[data-id="${id}"]`);
   if (wrap) {
     wrap.classList.remove('saved');
     const btn = wrap.querySelector('.save-btn');
     if (btn) btn.textContent = '+ SAVE TO DECK';
+    const cbBtn = wrap.querySelector('.cb-save');
+    if (cbBtn) cbBtn.textContent = '+ SAVE TO DECK';
   }
   renderDeck();
   updateDeckCount();
@@ -836,12 +1082,43 @@ function exportICS() {
 }
 
 /* ═══════════════════════════════════════════
-   TILT STUBS (Task 5)
+   CARD FLIP
+   ═══════════════════════════════════════════ */
+function flipCard(e) {
+  if (e.target.closest('.cb-save') || e.target.closest('.save-btn')) return;
+  const shell = e.currentTarget;
+  const flipper = shell.querySelector('.card-flipper');
+  if (!flipper) return;
+
+  const isFlipping = flipper.classList.contains('flipped');
+
+  /* Auto-close any other flipped card first */
+  const prev = document.querySelector('.card-flipper.flipped');
+  if (prev && prev !== flipper) {
+    prev.classList.remove('flipped');
+    prev.classList.add('flip-anim');
+    prev.addEventListener('animationend', () => prev.classList.remove('flip-anim'), { once: true });
+  }
+
+  /* Toggle this card */
+  flipper.classList.toggle('flipped');
+
+  /* Trigger glow animation */
+  flipper.classList.remove('flip-anim');
+  void flipper.offsetWidth; /* force reflow to restart animation */
+  flipper.classList.add('flip-anim');
+  flipper.addEventListener('animationend', () => flipper.classList.remove('flip-anim'), { once: true });
+}
+
+/* ═══════════════════════════════════════════
+   TILT
    ═══════════════════════════════════════════ */
 let _tiltRAF = 0;
 function tiltMove(e) {
   const el = e.currentTarget;
   if (window.matchMedia('(hover: none)').matches) return;
+  const flipper = el.querySelector('.card-flipper');
+  if (flipper && flipper.classList.contains('flipped')) return;
   cancelAnimationFrame(_tiltRAF);
   _tiltRAF = requestAnimationFrame(() => {
     const rect = el.getBoundingClientRect();
@@ -849,7 +1126,7 @@ function tiltMove(e) {
     const y = (e.clientY - rect.top) / rect.height;
     const rotY = (x - 0.5) * 20;
     const rotX = (0.5 - y) * 20;
-    el.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+    el.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
     /* Set reflection vars on the inner .collector for ::after */
     const inner = el.querySelector('.collector');
     if (inner) { inner.style.setProperty('--mx', (x*100)+'%'); inner.style.setProperty('--my', (y*100)+'%'); }
@@ -857,13 +1134,21 @@ function tiltMove(e) {
 }
 
 function tiltEnter(e) {
-  e.currentTarget.style.transition = 'transform .1s ease-out';
+  const el = e.currentTarget;
+  const flipper = el.querySelector('.card-flipper');
+  if (flipper && flipper.classList.contains('flipped')) return;
+  el.style.transition = 'transform .1s ease-out';
 }
 
 function tiltLeave(e) {
   const el = e.currentTarget;
+  const flipper = el.querySelector('.card-flipper');
+  if (flipper && flipper.classList.contains('flipped')) {
+    el.style.transform = '';
+    return;
+  }
   el.style.transition = 'transform .4s ease-out';
-  el.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale(1)';
+  el.style.transform = 'rotateX(0) rotateY(0) scale(1)';
 }
 
 /* ═══════════════════════════════════════════
@@ -873,6 +1158,7 @@ async function init() {
   showSkeletons();
   renderFilters();
   updateDeckCount();
+  initAuth();
 
   try {
     const [sessRes, spkRes] = await Promise.all([
@@ -889,6 +1175,12 @@ async function init() {
     try {
       const imgRes = await fetch('data/card-images/index.json');
       if (imgRes.ok) S.cardImages = await imgRes.json();
+    } catch(_) {}
+
+    /* Load pitch lines (optional) */
+    try {
+      const pitchRes = await fetch('data/pitches.json');
+      if (pitchRes.ok) S.pitches = await pitchRes.json();
     } catch(_) {}
 
     renderGrid();
