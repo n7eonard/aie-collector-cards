@@ -17,6 +17,16 @@
 <link rel="icon" type="image/svg+xml" href="data/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@amplitude/unified/dist/amplitude-unified.umd.js"></script>
+<script>
+  if (typeof amplitude !== 'undefined') {
+    amplitude.initAll('900880a06386b11cc0680ea74c181c9b', {
+      "serverZone": "EU",
+      "analytics": { "autocapture": true },
+      "sessionReplay": { "sampleRate": 1 }
+    });
+  }
+</script>
 <style>
 /* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
