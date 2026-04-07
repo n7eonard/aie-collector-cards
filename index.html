@@ -181,34 +181,29 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 }
 .collector-shell:hover .collector::after{opacity:1}
 
-/* ── CARD FLIP (Raichu-style: lift + 2.5 spins) ── */
+/* ── CARD FLIP (Raichu-style: lift + half turn) ── */
 .card-flipper{
   position:relative;
   transform-style:preserve-3d;
   aspect-ratio:3/4;
-  --flip-height:8em;
+  --flip-h:5em;
   animation-fill-mode:both;
 }
 
 @keyframes flip-to-back{
-  0%  {transform:translateZ(0) rotateY(0deg);     filter:brightness(1)}
-  15% {transform:translateZ(var(--flip-height)) rotateY(-180deg); filter:brightness(1.3) drop-shadow(0 0 30px rgba(var(--c1-rgb,79,255,176),.5))}
-  35% {transform:translateZ(var(--flip-height)) rotateY(-360deg); filter:brightness(1.5) drop-shadow(0 0 40px rgba(var(--c1-rgb,79,255,176),.7))}
-  55% {transform:translateZ(var(--flip-height)) rotateY(-540deg); filter:brightness(1.4)}
-  75% {transform:translateZ(var(--flip-height)) rotateY(-720deg); filter:brightness(1.2)}
-  100%{transform:translateZ(0) rotateY(-900deg);  filter:brightness(1)}
+  0%  {transform:translateZ(0) rotateY(0deg)}
+  50% {transform:translateZ(var(--flip-h)) rotateY(-90deg)}
+  100%{transform:translateZ(0) rotateY(-180deg)}
 }
 @keyframes flip-to-front{
-  0%  {transform:translateZ(0) rotateY(-900deg);  filter:brightness(1)}
-  25% {transform:translateZ(var(--flip-height)) rotateY(-720deg); filter:brightness(1.2)}
-  50% {transform:translateZ(var(--flip-height)) rotateY(-450deg); filter:brightness(1.5) drop-shadow(0 0 40px rgba(var(--c1-rgb,79,255,176),.7))}
-  75% {transform:translateZ(var(--flip-height)) rotateY(-180deg); filter:brightness(1.3)}
-  100%{transform:translateZ(0) rotateY(0deg);     filter:brightness(1)}
+  0%  {transform:translateZ(0) rotateY(-180deg)}
+  50% {transform:translateZ(var(--flip-h)) rotateY(-90deg)}
+  100%{transform:translateZ(0) rotateY(0deg)}
 }
 
-.card-flipper.flipping-to-back{animation:flip-to-back 1.4s ease-in-out both}
-.card-flipper.flipping-to-front{animation:flip-to-front 1.4s ease-in-out both}
-.card-flipper.flipped{transform:translateZ(0) rotateY(-900deg)}
+.card-flipper.flipping-to-back{animation:flip-to-back .65s ease-in-out both}
+.card-flipper.flipping-to-front{animation:flip-to-front .65s ease-in-out both}
+.card-flipper.flipped{transform:rotateY(-180deg)}
 .card-back{
   backface-visibility:hidden;
   transform:rotateY(180deg);
