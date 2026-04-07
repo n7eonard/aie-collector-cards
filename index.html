@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="data/favicon.svg">
 <title>AIE Collector — Build your deck for AI Engineer Europe 2026</title>
 <meta name="description" content="Browse 189 sessions as collector cards, filter by track, and build your personal deck for AI Engineer Europe 2026 in London.">
 <meta property="og:title" content="AIE Collector — Build your deck for AI Engineer Europe 2026">
@@ -12,6 +11,7 @@
 <meta property="og:url" content="https://aie-collector.experimenta.work">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -64,9 +64,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 }
 .filters::-webkit-scrollbar{display:none}
 .filter-pill{
-  font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:.06em;
+  font-family:'Syne Mono',monospace;font-size:10px;letter-spacing:.06em;
   background:transparent;color:var(--muted);border:1px solid var(--g2);
-  border-radius:999px;padding:9px 18px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;
+  border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;
 }
 .filter-pill:hover{color:#e8eef8;border-color:rgba(255,255,255,.2)}
 .filter-pill.active{
@@ -88,32 +88,15 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 }
 @media(max-width:1200px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
-/* Surprise me button */
-.surprise-btn{
-  font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;
-  background:linear-gradient(135deg,#f97316,#ec4899,#8b5cf6);
-  color:#fff;border:none;
-  border-radius:999px;padding:7px 18px;cursor:pointer;transition:all .25s;white-space:nowrap;flex-shrink:0;
-}
-.surprise-btn:hover{opacity:.85;transform:scale(1.05)}
-.surprise-btn:active{transform:scale(.95)}
-
+@media(max-width:540px){.grid{grid-template-columns:1fr;padding:110px 14px 40px}.header{padding:12px 14px}.filters-wrap{padding:8px 14px}}
 @media(max-width:600px){
-<<<<<<< HEAD
-  .header{padding:10px 14px}
-  .header-title{font-size:15px}
-  .header-sub{display:none}
-  .header-right{gap:6px}
-  .auth-btn,.deck-btn{font-size:9px;padding:6px 12px}
-  .filters-wrap{top:44px;padding:8px 14px}
-  .filters{gap:6px}
-  .filter-pill{font-size:12px;padding:9px 18px}
-  .surprise-btn{font-size:12px;padding:9px 18px}
-  .grid{grid-template-columns:1fr;padding:100px 14px 40px;gap:16px}
-=======
->>>>>>> claude/amazing-black
   .card-flipper{aspect-ratio:4/5}
   .c-title{font-size:14px}
+  .header{padding:12px 16px}
+  .header-title{font-size:18px}
+  .filters-wrap{top:53px}
+  .filters{padding:10px 16px}
+  .grid{padding-top:120px}
 }
 
 /* ── SKELETON ── */
@@ -170,84 +153,12 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
     linear-gradient(225deg,var(--c2) 0%,transparent 50%),
     linear-gradient(180deg,rgba(0,0,0,.3) 0%,rgba(0,0,0,.8) 100%);
 }
-/* Light reflection: bright spot + holographic rainbow overlay */
 .collector::after{
   content:'';position:absolute;inset:0;z-index:3;
-  background:
-    radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.45) 0%,rgba(255,255,255,.1) 30%,transparent 60%),
-    conic-gradient(from var(--angle,0deg) at var(--mx,50%) var(--my,50%),
-      rgba(255,100,200,.12),rgba(100,200,255,.15),rgba(100,255,150,.12),
-      rgba(255,255,100,.1),rgba(255,100,200,.12));
-  opacity:0;transition:opacity .3s;pointer-events:none;
-  mix-blend-mode:screen;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.12) 0%,transparent 60%);
+  opacity:0;transition:opacity .25s;pointer-events:none;
 }
 .collector-shell:hover .collector::after{opacity:1}
-.collector.gyro-active::after{opacity:1}
-
-/* ── CARD FLIP (Raichu-style: lift + 2 full rotations) ── */
-.card-flipper{
-  position:relative;
-  transform-style:preserve-3d;
-  aspect-ratio:3/4;
-  --flip-height:8em;
-  animation-fill-mode:both;
-  animation-timing-function:ease-in-out;
-}
-
-/* Flip to back: 2 spins + half turn (900deg) — lands on back face */
-@keyframes flip-to-back{
-  0%  {transform:translateZ(0) rotateY(0deg);     filter:brightness(1)}
-  15% {transform:translateZ(var(--flip-height)) rotateY(-180deg); filter:brightness(1.3) drop-shadow(0 0 30px rgba(var(--c1-rgb,79,255,176),.5))}
-  35% {transform:translateZ(var(--flip-height)) rotateY(-360deg); filter:brightness(1.5) drop-shadow(0 0 40px rgba(var(--c1-rgb,79,255,176),.7))}
-  55% {transform:translateZ(var(--flip-height)) rotateY(-540deg); filter:brightness(1.4) drop-shadow(0 0 35px rgba(var(--c1-rgb,79,255,176),.5))}
-  75% {transform:translateZ(var(--flip-height)) rotateY(-720deg); filter:brightness(1.2)}
-  100%{transform:translateZ(0) rotateY(-900deg);  filter:brightness(1)}
-}
-
-/* Flip back to front: reverse spin back to 0 */
-@keyframes flip-to-front{
-  0%  {transform:translateZ(0) rotateY(-900deg);  filter:brightness(1)}
-  25% {transform:translateZ(var(--flip-height)) rotateY(-720deg); filter:brightness(1.2)}
-  50% {transform:translateZ(var(--flip-height)) rotateY(-450deg); filter:brightness(1.5) drop-shadow(0 0 40px rgba(var(--c1-rgb,79,255,176),.7))}
-  75% {transform:translateZ(var(--flip-height)) rotateY(-180deg); filter:brightness(1.3)}
-  100%{transform:translateZ(0) rotateY(0deg);     filter:brightness(1)}
-}
-
-.card-flipper.flipping-to-back{animation:flip-to-back 1.4s ease-in-out both}
-.card-flipper.flipping-to-front{animation:flip-to-front 1.4s ease-in-out both}
-/* Hold final state: 900deg = 5 half-turns = shows back face */
-.card-flipper.flipped{transform:translateZ(0) rotateY(-900deg)}
-.card-back{
-  backface-visibility:hidden;
-  transform:rotateY(180deg);
-  position:absolute;inset:0;
-  border-radius:12px;overflow:hidden;
-  background:var(--surface);
-  display:flex;flex-direction:column;
-  padding:16px;color:var(--txt);
-  overflow-y:auto;scrollbar-width:thin;
-  scrollbar-color:var(--g2) transparent;
-}
-.card-back::-webkit-scrollbar{width:4px}
-.card-back::-webkit-scrollbar-thumb{background:var(--g2);border-radius:2px}
-
-.cb-hint{font-family:'Syne Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:.08em;margin-bottom:12px;cursor:pointer}
-.cb-title{font-size:15px;font-weight:800;line-height:1.25;margin-bottom:4px}
-.cb-track{font-family:'Syne Mono',monospace;font-size:9px;color:var(--c1,var(--muted));letter-spacing:.08em;margin-bottom:12px}
-.cb-divider{height:1px;background:var(--g2);margin:8px 0}
-.cb-pitch{font-style:italic;font-size:13px;line-height:1.5;color:#4fffb0;margin:4px 0}
-.cb-speaker{font-size:12px;font-weight:700;margin-top:4px}
-.cb-role{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2)}
-.cb-meta{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2);margin-top:8px;display:flex;flex-direction:column;gap:3px}
-.cb-desc{font-size:11px;line-height:1.55;color:var(--muted);margin-top:8px;flex:1}
-.cb-save{
-  font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:.08em;
-  background:transparent;color:var(--muted);border:1px solid var(--g2);
-  border-radius:10px;padding:10px 0;cursor:pointer;transition:all .25s;
-  width:100%;text-align:center;margin-top:auto;flex-shrink:0;
-}
-.cb-save:hover{color:#fff;font-weight:700;border-color:var(--c1,rgba(255,255,255,.3));background:var(--c1,#4fffb0)}
-.card-wrap.saved .cb-save{color:var(--c1);border-color:var(--c1);background:color-mix(in srgb,var(--c1) 15%,transparent)}
 
 /* ── CARD FLIP ── */
 .card-flipper{
@@ -742,7 +653,7 @@ function normalize(rawSessions, rawSpeakers) {
    ═══════════════════════════════════════════ */
 function renderFilters() {
   const el = document.getElementById('filters');
-  let html = '<button class="surprise-btn" onclick="shuffleCards()">\u2728 SURPRISE ME</button>';
+  let html = '';
   for (const t of TRACKS) {
     const c = COLORS[t] || FALLBACK_COLOR;
     html += `<button class="filter-pill" data-kind="track" data-val="${esc(t)}" style="--pill-c1:${c.c1}" onclick="setFilter('track','${esc(t)}')">${esc(t.toUpperCase())}</button>`;
@@ -752,22 +663,6 @@ function renderFilters() {
     html += `<button class="filter-pill" data-kind="type" data-val="${esc(t)}" onclick="setFilter('type','${esc(t)}')">${esc(t.toUpperCase())}</button>`;
   }
   el.innerHTML = html;
-}
-
-function shuffleCards() {
-  /* Fisher-Yates shuffle on S.sessions */
-  for (let i = S.sessions.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [S.sessions[i], S.sessions[j]] = [S.sessions[j], S.sessions[i]];
-  }
-  /* Clear any active filters */
-  S.filterTrack = null;
-  S.filterType = null;
-  /* Re-render */
-  renderGrid();
-  applyFilters();
-  /* Scroll to top */
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* ═══════════════════════════════════════════
@@ -1202,47 +1097,13 @@ function flipCard(e) {
   const shell = e.currentTarget;
   const flipper = shell.querySelector('.card-flipper');
   if (!flipper) return;
-<<<<<<< HEAD
-  /* Ignore clicks while animating */
-  if (flipper.classList.contains('flipping-to-back') || flipper.classList.contains('flipping-to-front')) return;
-
-  const isFlipped = flipper.classList.contains('flipped');
-=======
 
   const isFlipping = flipper.classList.contains('flipped');
->>>>>>> claude/amazing-black
 
   /* Auto-close any other flipped card first */
   const prev = document.querySelector('.card-flipper.flipped');
   if (prev && prev !== flipper) {
     prev.classList.remove('flipped');
-<<<<<<< HEAD
-    prev.classList.add('flipping-to-front');
-    prev.addEventListener('animationend', () => {
-      prev.classList.remove('flipping-to-front');
-    }, { once: true });
-  }
-
-  if (isFlipped) {
-    /* Flip back to front */
-    flipper.classList.remove('flipped');
-    flipper.classList.add('flipping-to-front');
-    flipper.addEventListener('animationend', () => {
-      flipper.classList.remove('flipping-to-front');
-    }, { once: true });
-  } else {
-    /* Flip to back: 2.5 spins with lift */
-    flipper.classList.add('flipping-to-back');
-    flipper.addEventListener('animationend', () => {
-      flipper.classList.remove('flipping-to-back');
-      flipper.classList.add('flipped');
-    }, { once: true });
-  }
-}
-
-/* ═══════════════════════════════════════════
-   TILT (mouse + gyroscope)
-=======
     prev.classList.add('flip-anim');
     prev.addEventListener('animationend', () => prev.classList.remove('flip-anim'), { once: true });
   }
@@ -1259,7 +1120,6 @@ function flipCard(e) {
 
 /* ═══════════════════════════════════════════
    TILT
->>>>>>> claude/amazing-black
    ═══════════════════════════════════════════ */
 let _tiltRAF = 0;
 function tiltMove(e) {
@@ -1275,10 +1135,7 @@ function tiltMove(e) {
     const rotY = (x - 0.5) * 20;
     const rotX = (0.5 - y) * 20;
     el.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-<<<<<<< HEAD
-=======
     /* Set reflection vars on the inner .collector for ::after */
->>>>>>> claude/amazing-black
     const inner = el.querySelector('.collector');
     if (inner) { inner.style.setProperty('--mx', (x*100)+'%'); inner.style.setProperty('--my', (y*100)+'%'); }
   });
@@ -1300,68 +1157,6 @@ function tiltLeave(e) {
   }
   el.style.transition = 'transform .4s ease-out';
   el.style.transform = 'rotateX(0) rotateY(0) scale(1)';
-<<<<<<< HEAD
-}
-
-/* ── Gyroscope tilt for mobile ── */
-let _gyroEnabled = false;
-let _gyroRAF = 0;
-
-function initGyroTilt() {
-  if (_gyroEnabled) return;
-  if (!window.DeviceOrientationEvent) return;
-
-  const start = () => {
-    _gyroEnabled = true;
-    window.addEventListener('deviceorientation', onGyro, { passive: true });
-  };
-
-  /* iOS 13+ requires permission */
-  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(s => { if (s === 'granted') start(); }).catch(() => {});
-  } else {
-    start();
-  }
-}
-
-function onGyro(e) {
-  cancelAnimationFrame(_gyroRAF);
-  _gyroRAF = requestAnimationFrame(() => {
-    const beta = e.beta || 0;
-    const gamma = e.gamma || 0;
-    /* Normalize: phone held at ~45deg */
-    const rotX = Math.max(-15, Math.min(15, (beta - 45) * 0.5));
-    const rotY = Math.max(-15, Math.min(15, gamma * 0.5));
-    /* Light reflection position: wide range for dramatic movement */
-    const mx = Math.max(0, Math.min(100, 50 + gamma * 1.2));
-    const my = Math.max(0, Math.min(100, 50 + (beta - 45) * 1.2));
-
-    /* Apply to all visible (non-flipped) cards in viewport */
-    document.querySelectorAll('.collector-shell').forEach(shell => {
-      const flipper = shell.querySelector('.card-flipper');
-      if (flipper && flipper.classList.contains('flipped')) return;
-      const rect = shell.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-      shell.style.transition = 'transform .12s ease-out';
-      shell.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-      const inner = shell.querySelector('.collector');
-      if (inner) {
-        inner.classList.add('gyro-active');
-        inner.style.setProperty('--mx', mx+'%');
-        inner.style.setProperty('--my', my+'%');
-      }
-    });
-  });
-}
-
-/* Request gyro permission on first user interaction (iOS requirement) */
-if (window.matchMedia('(hover: none)').matches) {
-  document.addEventListener('touchstart', function _reqGyro() {
-    initGyroTilt();
-    document.removeEventListener('touchstart', _reqGyro);
-  }, { once: true });
-=======
->>>>>>> claude/amazing-black
 }
 
 /* ═══════════════════════════════════════════
