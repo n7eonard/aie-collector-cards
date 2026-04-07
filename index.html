@@ -99,6 +99,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 .surprise-btn:active{transform:scale(.95)}
 
 @media(max-width:600px){
+<<<<<<< HEAD
   .header{padding:10px 14px}
   .header-title{font-size:15px}
   .header-sub{display:none}
@@ -109,6 +110,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
   .filter-pill{font-size:12px;padding:9px 18px}
   .surprise-btn{font-size:12px;padding:9px 18px}
   .grid{grid-template-columns:1fr;padding:100px 14px 40px;gap:16px}
+=======
+>>>>>>> claude/amazing-black
   .card-flipper{aspect-ratio:4/5}
   .c-title{font-size:14px}
 }
@@ -214,6 +217,52 @@ body{background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;font-si
 .card-flipper.flipping-to-front{animation:flip-to-front 1.4s ease-in-out both}
 /* Hold final state: 900deg = 5 half-turns = shows back face */
 .card-flipper.flipped{transform:translateZ(0) rotateY(-900deg)}
+.card-back{
+  backface-visibility:hidden;
+  transform:rotateY(180deg);
+  position:absolute;inset:0;
+  border-radius:12px;overflow:hidden;
+  background:var(--surface);
+  display:flex;flex-direction:column;
+  padding:16px;color:var(--txt);
+  overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:var(--g2) transparent;
+}
+.card-back::-webkit-scrollbar{width:4px}
+.card-back::-webkit-scrollbar-thumb{background:var(--g2);border-radius:2px}
+
+.cb-hint{font-family:'Syne Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:.08em;margin-bottom:12px;cursor:pointer}
+.cb-title{font-size:15px;font-weight:800;line-height:1.25;margin-bottom:4px}
+.cb-track{font-family:'Syne Mono',monospace;font-size:9px;color:var(--c1,var(--muted));letter-spacing:.08em;margin-bottom:12px}
+.cb-divider{height:1px;background:var(--g2);margin:8px 0}
+.cb-pitch{font-style:italic;font-size:13px;line-height:1.5;color:#4fffb0;margin:4px 0}
+.cb-speaker{font-size:12px;font-weight:700;margin-top:4px}
+.cb-role{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2)}
+.cb-meta{font-family:'Syne Mono',monospace;font-size:10px;color:var(--muted2);margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.cb-desc{font-size:11px;line-height:1.55;color:var(--muted);margin-top:8px;flex:1}
+.cb-save{
+  font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:.08em;
+  background:transparent;color:var(--muted);border:1px solid var(--g2);
+  border-radius:10px;padding:10px 0;cursor:pointer;transition:all .25s;
+  width:100%;text-align:center;margin-top:auto;flex-shrink:0;
+}
+.cb-save:hover{color:#fff;font-weight:700;border-color:var(--c1,rgba(255,255,255,.3));background:var(--c1,#4fffb0)}
+.card-wrap.saved .cb-save{color:var(--c1);border-color:var(--c1);background:color-mix(in srgb,var(--c1) 15%,transparent)}
+
+/* ── CARD FLIP ── */
+.card-flipper{
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,.0,.15,1.06);
+  aspect-ratio:3/4;
+}
+.card-flipper.flipped{transform:rotateY(180deg)}
+@keyframes flip-glow{
+  0%{filter:brightness(1)}
+  35%{filter:brightness(1.4) drop-shadow(0 0 24px rgba(var(--c1-rgb,79,255,176),.5))}
+  100%{filter:brightness(1)}
+}
+.card-flipper.flip-anim{animation:flip-glow .7s ease}
 .card-back{
   backface-visibility:hidden;
   transform:rotateY(180deg);
@@ -1153,15 +1202,21 @@ function flipCard(e) {
   const shell = e.currentTarget;
   const flipper = shell.querySelector('.card-flipper');
   if (!flipper) return;
+<<<<<<< HEAD
   /* Ignore clicks while animating */
   if (flipper.classList.contains('flipping-to-back') || flipper.classList.contains('flipping-to-front')) return;
 
   const isFlipped = flipper.classList.contains('flipped');
+=======
+
+  const isFlipping = flipper.classList.contains('flipped');
+>>>>>>> claude/amazing-black
 
   /* Auto-close any other flipped card first */
   const prev = document.querySelector('.card-flipper.flipped');
   if (prev && prev !== flipper) {
     prev.classList.remove('flipped');
+<<<<<<< HEAD
     prev.classList.add('flipping-to-front');
     prev.addEventListener('animationend', () => {
       prev.classList.remove('flipping-to-front');
@@ -1187,6 +1242,24 @@ function flipCard(e) {
 
 /* ═══════════════════════════════════════════
    TILT (mouse + gyroscope)
+=======
+    prev.classList.add('flip-anim');
+    prev.addEventListener('animationend', () => prev.classList.remove('flip-anim'), { once: true });
+  }
+
+  /* Toggle this card */
+  flipper.classList.toggle('flipped');
+
+  /* Trigger glow animation */
+  flipper.classList.remove('flip-anim');
+  void flipper.offsetWidth; /* force reflow to restart animation */
+  flipper.classList.add('flip-anim');
+  flipper.addEventListener('animationend', () => flipper.classList.remove('flip-anim'), { once: true });
+}
+
+/* ═══════════════════════════════════════════
+   TILT
+>>>>>>> claude/amazing-black
    ═══════════════════════════════════════════ */
 let _tiltRAF = 0;
 function tiltMove(e) {
@@ -1202,6 +1275,10 @@ function tiltMove(e) {
     const rotY = (x - 0.5) * 20;
     const rotX = (0.5 - y) * 20;
     el.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+<<<<<<< HEAD
+=======
+    /* Set reflection vars on the inner .collector for ::after */
+>>>>>>> claude/amazing-black
     const inner = el.querySelector('.collector');
     if (inner) { inner.style.setProperty('--mx', (x*100)+'%'); inner.style.setProperty('--my', (y*100)+'%'); }
   });
@@ -1223,6 +1300,7 @@ function tiltLeave(e) {
   }
   el.style.transition = 'transform .4s ease-out';
   el.style.transform = 'rotateX(0) rotateY(0) scale(1)';
+<<<<<<< HEAD
 }
 
 /* ── Gyroscope tilt for mobile ── */
@@ -1282,6 +1360,8 @@ if (window.matchMedia('(hover: none)').matches) {
     initGyroTilt();
     document.removeEventListener('touchstart', _reqGyro);
   }, { once: true });
+=======
+>>>>>>> claude/amazing-black
 }
 
 /* ═══════════════════════════════════════════
